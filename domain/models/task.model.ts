@@ -28,3 +28,5 @@ const TaskSchema = new Schema<ITask>({
 TaskSchema.index({ createdAt: -1 });
 
 export const Task = mongoose.model<ITask>('Task', TaskSchema);
+
+// Moved to domain layer

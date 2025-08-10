@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../src/app';
+import app from '../../infrastructure/app';
 import '../setup';
 
 describe('Tasks Controller Integration', () => {

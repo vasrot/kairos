@@ -1,5 +1,5 @@
-import { TaskPort } from '../core/ports/task.port';
-import { Task } from '../models/task.model';
+import { TaskPort } from '../../domain/ports/task.port';
+import { Task } from '../../domain/models/task.model';
 import { generateVariants } from '../services/image.service';
 
 export class TaskAdapter implements TaskPort {
@@ -31,7 +31,7 @@ export class TaskAdapter implements TaskPort {
       taskId: _id.toString(),
       status,
       price,
-      images: images?.map(({ resolution, path }) => ({ resolution, path }))
+      images: images?.map(({ resolution, path }: { resolution: string; path: string }) => ({ resolution, path }))
     };
   }
 }

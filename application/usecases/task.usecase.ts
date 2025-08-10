@@ -1,4 +1,4 @@
-import { TaskPort } from '../ports/task.port';
+import { TaskPort } from '../../domain/ports/task.port';
 
 export class TaskUseCase {
   constructor(private readonly taskPort: TaskPort) {}

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
-import { TaskUseCase } from '../core/usecases/task.usecase';
-import { TaskAdapter } from '../adapters/task.adapter';
+import { TaskUseCase } from '../usecases/task.usecase';
+import { TaskAdapter } from '../../infrastructure/adapters/task.adapter';
 
 const taskUseCase = new TaskUseCase(new TaskAdapter());
 

@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../src/app';
+import app from '../../infrastructure/app';
 
 describe('App unit', () => {
   it('GET /tasks responde 404 para rutas no implementadas', async () => {

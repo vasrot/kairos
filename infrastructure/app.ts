@@ -7,8 +7,6 @@ import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import YAML from 'yaml';
 import path from 'path';
-import { TaskUseCase } from './core/usecases/task.usecase';
-import { TaskAdapter } from './adapters/task.adapter';
 
 const app = express();
 app.use(helmet());
@@ -23,8 +21,6 @@ app.use('/output', express.static(outputDir));
 const openapiPath = path.resolve('openapi.yaml');
 const openapiDoc = YAML.parse(fs.readFileSync(openapiPath, 'utf8'));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDoc));
-
-const taskUseCase = new TaskUseCase(new TaskAdapter());
 
 app.use('/tasks', tasksRouter);
 app.use(errorHandler);
