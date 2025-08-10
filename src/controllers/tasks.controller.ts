@@ -12,7 +12,17 @@ export async function getTask(req: Request, res: Response) {
   const { taskId } = req.params;
   const task = await getTaskSvc(taskId);
   if (!task) throw createHttpError(404, 'Task not found');
-  const { _id, status, price, images, originalPath } = task;
-  const filteredImages = images.map(({ resolution, path }) => ({ resolution, path }));
-  return res.json({ taskId: _id, status, price, images: status === 'completed' ? filteredImages : undefined, originalPath });
+  const { _id, status, price, images } = task;
+
+  if (status === 'pending') {
+    return res.json({ taskId: _id, status, price });
+  }
+
+  if (status === 'completed') {
+    const filteredImages = images.map(({ resolution, path }) => ({ resolution, path }));
+    return res.json({ taskId: _id, status, price, images: filteredImages });
+  }
+
+  // Error status
+  return res.json({ taskId: _id, status, price });
 }
