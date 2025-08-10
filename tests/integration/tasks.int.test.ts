@@ -25,6 +25,7 @@ describe('Tasks Controller Integration', () => {
     expect(pendingRes.body.status).toBe('pending');
     expect(typeof pendingRes.body.price).toBe('number');
     expect(pendingRes.body).not.toHaveProperty('originalPath');
+    expect(pendingRes.body).not.toHaveProperty('images');
   });
 
   it('GET /tasks/:taskId devuelve el estado y precio si está completada', async () => {
@@ -40,5 +41,12 @@ describe('Tasks Controller Integration', () => {
     expect(completedRes.status).toBe(200);
     expect(completedRes.body.status).toBe('completed');
     expect(typeof completedRes.body.price).toBe('number');
+  });
+
+  it('GET /tasks/:taskId con un id inexistente retorna 404', async () => {
+    const fakeId = '64b8b437d8a25104c1b45103';
+    const res = await request(app).get(`/tasks/${fakeId}`);
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('message');
   });
 });

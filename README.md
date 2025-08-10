@@ -98,7 +98,6 @@ La aplicación está diseñada siguiendo una arquitectura modular y escalable, u
 
 ### Pruebas
 - Comprobar primero que el contenedor de node de desarrollo esta apagado, si no, habrá problemas de puertos.
-- Borrar todo lo que haya dentro de data/output
 Ejecutar las pruebas con:
 ```bash
 docker compose run --rm --service-ports app npm run test

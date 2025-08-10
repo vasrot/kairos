@@ -15,7 +15,7 @@ export async function getTask(req: Request, res: Response) {
   const { _id, status, price, images } = task;
 
   if (status === 'pending') {
-    return res.json({ taskId: _id, status, price });
+    return res.json({ status, price });
   }
 
   if (status === 'completed') {
