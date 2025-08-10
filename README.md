@@ -1,111 +1,114 @@
 # Image Tasks API
 
-API REST para procesar imágenes y consultar tareas.
+REST API for processing images and managing tasks.
 
-## Arquitectura
+## Architecture
 
-La aplicación está diseñada siguiendo una arquitectura modular y escalable, utilizando las mejores prácticas de desarrollo (API-First, separación de conceptos, gestión de errores y pruebas):
+The application is designed following a hexagonal architecture (infrastructure, application, and domain), ensuring quality with tests:
 
-1. **Node.js y Express**:
-   - Framework principal para construir la API REST.
-   - Express se utiliza para manejar rutas, middlewares y controladores.
+1. **Node.js and Express**:
+   - Main framework for building the REST API.
+   - Express is used to handle routes, middlewares, and controllers.
 
-2. **MongoDB con Mongoose**:
-   - Base de datos NoSQL para almacenar tareas e imágenes procesadas.
-   - Mongoose se utiliza para definir esquemas y manejar la interacción con la base de datos.
+2. **MongoDB with Mongoose**:
+   - NoSQL database to store tasks and processed images.
+   - Mongoose is used to define schemas and manage database interaction.
 
-3. **Procesamiento de imágenes con Sharp**:
-   - Biblioteca para manipulación de imágenes, como redimensionamiento y conversión de formatos.
+3. **Image processing with Sharp**:
+   - Library for image manipulation, such as resizing and format conversion.
 
 4. **Docker**:
-   - Contenedores para garantizar un entorno consistente entre desarrollo y producción.
-   - Docker Compose para orquestar servicios como MongoDB y la aplicación Node.js.
+   - Containers to ensure a consistent environment between development and production.
+   - Docker Compose to orchestrate services like MongoDB and the Node.js application.
 
 5. **Swagger**:
-   - Documentación interactiva de la API disponible en `/docs`.
+   - Interactive API documentation available at `/docs`.
 
-### Componentes principales
+### Main Components
 
-- **`src/app.ts`**: Configuración principal de la aplicación, incluyendo middlewares y rutas.
-- **`src/controllers`**: Contiene los controladores para manejar las solicitudes HTTP.
-- **`src/services`**: Lógica de negocio, como creación de tareas y procesamiento de imágenes.
-- **`src/models`**: Definición de esquemas de MongoDB utilizando Mongoose.
-- **`src/middleware`**: Middlewares para validación y manejo de errores.
+- **`src/app.ts`**: Main application configuration, including middlewares, routes, and use case initialization.
+- **`src/controllers`**: Controllers that handle HTTP requests and delegate business logic to use cases.
+- **`src/core/usecases`**: Use cases that encapsulate business logic and act as intermediaries between controllers and ports.
+- **`src/core/ports`**: Interfaces that define available operations to interact with business logic, decoupling technical details.
+- **`src/adapters`**: Implementations of ports that handle technical details, such as database interaction and image processing.
+- **`src/models`**: MongoDB schema definitions using Mongoose to structure task and image data.
+- **`src/middleware`**: Middlewares that check request validity and handle global errors.
+- **`src/services`**: Auxiliary services that perform specific tasks, such as image processing or variant generation.
 
-## Decisiones tomadas
+## Decisions Made
 
-1. **Middleware centralizado para manejo de errores**:
-   - Se implementó un middleware para capturar y gestionar errores globales.
-   - Esto asegura que la aplicación sea robusta y proporcione respuestas consistentes.
+1. **Centralized error handling middleware**:
+   - A middleware was implemented to capture and manage global errors.
+   - This ensures the application is robust and provides consistent responses.
 
-2. **Procesamiento en segundo plano**:
-   - Las imágenes se procesan de manera asíncrona para evitar bloquear las solicitudes HTTP.
-   - Esto mejora la experiencia del usuario y la escalabilidad.
+2. **Background processing**:
+   - Images are processed asynchronously to avoid blocking HTTP requests.
+   - This improves user experience and scalability.
 
-3. **La imagen no se guarda si se detecta que es la misma**
-   - En caso de que el md5 de la imagen coincida con una existente en la base de datos, no se guarda por eficiencia.
+3. **Image is not saved if detected as duplicate**
+   - If the image's md5 matches an existing one in the database, it is not saved for efficiency.
 
-4. **Las imagenes generadas son públicas**
-   - Se pueden ver desde el navegador las imagenes generadas en localhost:3000/output/${nombre}/${resolucion}/${md5}.${extension}
+4. **Generated images are public**
+   - Generated images can be viewed from the browser at localhost:3000/output/${name}/${resolution}/${md5}.${extension}
 
-4. **Uso de Docker**:
-   - Docker garantiza que el entorno de desarrollo y producción sea consistente.
-   - MongoDB y la aplicación Node.js están orquestados con Docker Compose.
+4. **Use of Docker**:
+   - Docker ensures that the development and production environments are consistent.
+   - MongoDB and the Node.js application are orchestrated with Docker Compose.
 
-5. **Pruebas unitarias e integración**:
-   - Se implementaron pruebas para garantizar la calidad del código y prevenir regresiones.
-   - Jest se utiliza como framework de pruebas.
+5. **Unit and integration tests**:
+   - Tests were implemented to ensure code quality and prevent regressions.
+   - Jest is used as the testing framework.
 
-## Pasos para ejecutar la aplicación
+## Steps to Run the Application
 
-### Requisitos
+### Requirements
 - Node.js 22+
 - Docker / Docker Compose
 
-### Pasos para ejecutar la aplicación
+### Steps to Run the Application
 
-1. **Crear carpetas de datos**:
-    El directorio input es para las imagenes que se quieran subir.
-    El output es para los resultados.
+1. **Create data folders**:
+    The input directory is for images you want to upload.
+    The output is for the results.
    ```bash
    mkdir -p data/input data/output
    ```
 
-2. **Instalar node modules**:
+2. **Install node modules**:
    ```bash
    docker compose run --rm --service-ports app npm i
    ```
 
-3. **Ejecutar Mongo**:
+3. **Run Mongo**:
     ```bash
     docker compose -f 'docker-compose.yml' up -d --build 'mongo'
     ```
 
-4. **Ejecutar API en DEV**:
+4. **Run API in DEV**:
     ```bash
     docker compose run --rm --service-ports app npm run dev
     ```
 
-4. **Abrir la documentación**:
-   Accede a la documentación Swagger en:
+4. **Open the documentation**:
+   Access the Swagger documentation at:
    ```
    http://localhost:3000/docs
    ```
 
-5. **Hace POST con imagen local**:
-   Al estar en un contenedor, la ruta tiene que seguir este ejemplo:
+5. **Make a POST with a local image**:
+   Since you are in a container, the path should follow this example:
    ```
    /app/data/input/test-image.jpg
    ```
-   La imagen test-image.jpg ya existe por comodidad.
+   The image test-image.jpg already exists for convenience.
 
-### Pruebas
-- Comprobar primero que el contenedor de node de desarrollo esta apagado, si no, habrá problemas de puertos.
-Ejecutar las pruebas con:
+### Tests
+- First, make sure the development node container is stopped; otherwise, there will be port conflicts.
+Run the tests with:
 ```bash
 docker compose run --rm --service-ports app npm run test
 ```
 
-### Notas adicionales
-- La aplicación utiliza un archivo `.env` para configurar variables de entorno como `MONGO_URI` y `PORT`.
-- Los logs de errores se almacenan en `logs/error.log` para facilitar el monitoreo y depuración.
+### Additional Notes
+- The application uses a `.env` file to configure environment variables such as `MONGO_URI` and `PORT`.
+- Error logs are stored in `logs/error.log` to facilitate monitoring and debugging.

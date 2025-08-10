@@ -6,6 +6,6 @@
     "strict": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*"],
+  "include": ["infrastructure/**/*", "utils"],
   "exclude": ["node_modules"]
 }

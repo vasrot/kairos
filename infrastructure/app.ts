@@ -13,7 +13,7 @@ app.use(helmet());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// servir directorio de salida como estático
+// serve output directory as static
 const outputDir = process.env.OUTPUT_DIR || path.resolve('data/output');
 app.use('/output', express.static(outputDir));
 
