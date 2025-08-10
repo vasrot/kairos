@@ -15,8 +15,6 @@ export async function ensureDir(dir: string) {
 
 export async function loadInput(source: string): Promise<{ buf: Buffer; originalName: string; ext: string; }>{
   // Si es URL pública (http/https), descargar; si es path local, leer
-  console.log(`Cargando imagen desde: ${source}`);
-
   if (/^https?:\/\//i.test(source)) {
     // Usar fetch nativo en Node.js 22
     const res = await fetch(source);
@@ -33,6 +31,7 @@ export async function loadInput(source: string): Promise<{ buf: Buffer; original
     const base = path.basename(p);
     const originalName = base.split('.')[0];
     const ext = path.extname(base).replace('.', '') || 'jpg';
+
     return { buf, originalName, ext };
   }
 }
@@ -50,8 +49,6 @@ export async function generateVariants(source: string, widths = [1024, 800]) {
       const filename = `${hash}.${ext}`;
       const filePath = path.join(outDir, filename);
       await fs.writeFile(filePath, resized);
-
-      console.log(`Image processed: ${originalName} ${filePath} (${w}px)`);
 
       publicPath = `/output/${originalName}/${w}/${filename}`;
 

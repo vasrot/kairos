@@ -42,11 +42,14 @@ La aplicación está diseñada siguiendo una arquitectura modular y escalable, u
    - Las imágenes se procesan de manera asíncrona para evitar bloquear las solicitudes HTTP.
    - Esto mejora la experiencia del usuario y la escalabilidad.
 
-3. **Uso de Docker**:
+3. **La imagen no se guarda si se detecta que es la misma**
+   - En caso de que el md5 de la imagen coincida con una existente en la base de datos, no se guarda.
+
+4. **Uso de Docker**:
    - Docker garantiza que el entorno de desarrollo y producción sea consistente.
    - MongoDB y la aplicación Node.js están orquestados con Docker Compose.
 
-4. **Pruebas unitarias e integración**:
+5. **Pruebas unitarias e integración**:
    - Se implementaron pruebas para garantizar la calidad del código y prevenir regresiones.
    - Jest se utiliza como framework de pruebas.
 
@@ -94,7 +97,7 @@ La aplicación está diseñada siguiendo una arquitectura modular y escalable, u
    La imagen test-image.jpg ya existe por comodidad.
 
 ### Pruebas
-Comprobar primero que el contenedor de node de desarrollo esta apagado, si no, habrá problemas de puertos.
+- Comprobar primero que el contenedor de node de desarrollo esta apagado, si no, habrá problemas de puertos.
 Ejecutar las pruebas con:
 ```bash
 docker compose run --rm --service-ports app npm run test
