@@ -1,5 +1,5 @@
-import { Task } from '../models/task.model.js';
-import { generateVariants } from './image.service.js';
+import { Task } from '../models/task.model';
+import { generateVariants } from './image.service';
 
 export async function createTask(source: string) {
   const price = Number((Math.random() * (50 - 5) + 5).toFixed(2));
