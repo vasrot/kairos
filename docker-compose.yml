@@ -1,0 +1,55 @@
+volumes:
+  mongo_data:
+  node_modules:
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: image-tasks-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # DEV container
+  app:
+    image: node:20-alpine
+    container_name: image-tasks-dev
+    working_dir: /app
+    user: "node"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/image_tasks
+      - PORT=3000
+      - INPUT_DIR=/app/data/input
+      - OUTPUT_DIR=/app/data/output
+      - BASE_PUBLIC_URL=http://localhost:3000
+    volumes:
+      - ./:/app
+      # - node_modules:/app/node_modules
+      # - ./data/input:/app/data/input
+      # - ./data/output:/app/data/output
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+
+  # PROD container
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: image-tasks-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/image_tasks
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/input:/app/data/input
+      - ./data/output:/app/data/output
+    depends_on:
+      - mongo
