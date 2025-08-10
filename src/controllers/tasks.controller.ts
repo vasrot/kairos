@@ -1,28 +1,30 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
-import { createTask as createTaskSvc, getTask as getTaskSvc } from '../services/task.service';
+import { TaskUseCase } from '../core/usecases/task.usecase';
+import { TaskAdapter } from '../adapters/task.adapter';
+
+const taskUseCase = new TaskUseCase(new TaskAdapter());
 
 export async function createTask(req: Request, res: Response) {
   const { source } = req.body as { source: string };
-  const task = await createTaskSvc(source);
-  return res.status(201).json({ taskId: task._id, status: task.status, price: task.price });
+  const task = await taskUseCase.createTask(source);
+  return res.status(201).json(task);
 }
 
 export async function getTask(req: Request, res: Response) {
   const { taskId } = req.params;
-  const task = await getTaskSvc(taskId);
+  const task = await taskUseCase.getTask(taskId);
   if (!task) throw createHttpError(404, 'Task not found');
-  const { _id, status, price, images } = task;
+
+  const { taskId: id, status, price, images } = task;
 
   if (status === 'pending') {
     return res.json({ status, price });
   }
 
   if (status === 'completed') {
-    const filteredImages = images.map(({ resolution, path }) => ({ resolution, path }));
-    return res.json({ taskId: _id, status, price, images: filteredImages });
+    return res.json({ taskId: id, status, price, images });
   }
 
-  // Error status
-  return res.json({ taskId: _id, status, price });
+  return res.json({ taskId: id, status, price });
 }
