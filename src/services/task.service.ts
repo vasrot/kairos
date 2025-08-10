@@ -14,7 +14,6 @@ export async function createTask(source: string) {
       await task.save();
     } catch (err: any) {      
       task.status = 'failed';
-      task.error = err?.message || 'processing_error';
       await task.save();
     }
   })();
