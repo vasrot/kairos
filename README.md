@@ -26,14 +26,14 @@ The application is designed following a hexagonal architecture (infrastructure, 
 
 ### Main Components
 
-- **`src/app.ts`**: Main application configuration, including middlewares, routes, and use case initialization.
-- **`src/controllers`**: Controllers that handle HTTP requests and delegate business logic to use cases.
-- **`src/core/usecases`**: Use cases that encapsulate business logic and act as intermediaries between controllers and ports.
-- **`src/core/ports`**: Interfaces that define available operations to interact with business logic, decoupling technical details.
-- **`src/adapters`**: Implementations of ports that handle technical details, such as database interaction and image processing.
-- **`src/models`**: MongoDB schema definitions using Mongoose to structure task and image data.
-- **`src/middleware`**: Middlewares that check request validity and handle global errors.
-- **`src/services`**: Auxiliary services that perform specific tasks, such as image processing or variant generation.
+- **`application/controllers`**: Controllers that handle HTTP requests and delegate business logic to use cases.
+- **`application/usecases`**: Use cases that encapsulate business logic and act as intermediaries between controllers and ports.
+- **`domain/models`**: MongoDB schema definitions using Mongoose to structure task and image data.
+- **`domain/ports`**: Interfaces that define available operations to interact with business logic, decoupling technical details.
+- **`infrastructure/adapters`**: Implementations of ports that handle technical details, such as database interaction and image processing.
+- **`infrastructure/app.ts`**: Main application configuration, including middlewares, routes, and use case initialization.
+- **`infrastructure/middleware`**: Middlewares that check request validity and handle global errors.
+- **`infrastructure/services`**: Auxiliary services that perform specific tasks, such as image processing or variant generation.
 
 ## Decisions Made
 
@@ -45,7 +45,7 @@ The application is designed following a hexagonal architecture (infrastructure, 
    - Images are processed asynchronously to avoid blocking HTTP requests.
    - This improves user experience and scalability.
 
-3. **Image is not saved if detected as duplicate**
+3. **Image is not saved if detected as duplicate**:
    - If the image's md5 matches an existing one in the database, it is not saved for efficiency.
 
 4. **Generated images are public**
