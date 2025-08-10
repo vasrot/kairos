@@ -1,4 +1,4 @@
-import * as imageService from '../../src/services/image.service';
+import * as imageService from '../../infrastructure/services/image.service';
 import fs from 'fs/promises';
 import path from 'path';
 

@@ -3,7 +3,7 @@ jest.mock('fs/promises', () => ({
   mkdir: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { errorHandler } from '../../src/middleware/error.middleware';
+import { errorHandler } from '../../infrastructure/middleware/error.middleware';
 import { MongoServerError } from 'mongodb';
 import createHttpError from 'http-errors';
 
