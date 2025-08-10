@@ -13,7 +13,7 @@ async function logError(err: any) {
     await fs.mkdir(path.dirname(LOG_PATH), { recursive: true });
     await fs.appendFile(LOG_PATH, entry);
   } catch (e) {
-    // No lanzar error si falla el log
+    // Do not throw error if logging fails
     console.error('Error writing to log:', e);
   }
 }
@@ -50,6 +50,6 @@ export async function errorHandler(err: any, req: Request, res: Response, _next:
     return res.status(400).json({ message: 'Validation error', errors: err.errors });
   }
 
-  // Otros errores
+  // Other errors
   res.status(500).json({ message: err.message || 'Internal Server Error' });
 }

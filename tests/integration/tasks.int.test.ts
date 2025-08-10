@@ -3,7 +3,7 @@ import app from '../../infrastructure/app';
 import '../setup';
 
 describe('Tasks Controller Integration', () => {
-  it('POST /tasks crea una tarea y responde con taskId, status "pending" y precio asignado', async () => {
+  it('POST /tasks creates a task and responds with taskId, status "pending" and assigned price', async () => {
     const res = await request(app)
       .post('/tasks')
       .send({ source: '/app/tests/fixtures/input/test.jpg' });
@@ -13,7 +13,7 @@ describe('Tasks Controller Integration', () => {
     expect(typeof res.body.price).toBe('number');
   });
 
-  it('GET /tasks/:taskId devuelve el estado y precio si está pendiente', async () => {
+  it('GET /tasks/:taskId returns status and price if it is pending', async () => {
     const res = await request(app)
       .post('/tasks')
       .send({ source: '/app/tests/fixtures/input/test1.jpg' });
@@ -28,7 +28,7 @@ describe('Tasks Controller Integration', () => {
     expect(pendingRes.body).not.toHaveProperty('images');
   });
 
-  it('GET /tasks/:taskId devuelve el estado y precio si está completada', async () => {
+  it('GET /tasks/:taskId returns status and price if it is completed', async () => {
     const res = await request(app)
       .post('/tasks')
       .send({ source: '/app/tests/fixtures/input/test2.jpg' });
@@ -43,7 +43,7 @@ describe('Tasks Controller Integration', () => {
     expect(typeof completedRes.body.price).toBe('number');
   });
 
-  it('GET /tasks/:taskId con un id inexistente retorna 404', async () => {
+  it('GET /tasks/:taskId with a non-existent id returns 404', async () => {
     const fakeId = '64b8b437d8a25104c1b45103';
     const res = await request(app).get(`/tasks/${fakeId}`);
     expect(res.status).toBe(404);

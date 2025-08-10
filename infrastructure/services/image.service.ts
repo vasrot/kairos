@@ -14,9 +14,8 @@ export async function ensureDir(dir: string) {
 }
 
 export async function loadInput(source: string): Promise<{ buf: Buffer; originalName: string; ext: string; }>{
-  // Si es URL pública (http/https), descargar; si es path local, leer
+  // If it's a public URL (http/https), download; if it's a local path, read
   if (/^https?:\/\//i.test(source)) {
-    // Usar fetch nativo en Node.js 22
     const res = await fetch(source);
     if (!res.ok) throw new Error(`Could not download image: ${res.status}`);
     const buf = Buffer.from(await res.arrayBuffer());
