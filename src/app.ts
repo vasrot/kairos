@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import tasksRouter from './routes/tasks.routes';
+import { errorHandler } from './middleware/error.middleware';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import YAML from 'yaml';
@@ -22,5 +23,6 @@ const openapiDoc = YAML.parse(fs.readFileSync(openapiPath, 'utf8'));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDoc));
 
 app.use('/tasks', tasksRouter);
+app.use(errorHandler);
 
 export default app;
