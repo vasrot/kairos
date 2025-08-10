@@ -1,5 +1,6 @@
 import { Task } from '../models/task.model';
 import { generateVariants } from './image.service';
+import mongoose from 'mongoose';
 
 export async function createTask(source: string) {
   const price = Number((Math.random() * (50 - 5) + 5).toFixed(2));
@@ -22,6 +23,10 @@ export async function createTask(source: string) {
 }
 
 export async function getTask(taskId: string) {
-  const task = await Task.findById(taskId).lean();
-  return task;
+  try {
+    const task = await Task.findById(taskId).lean();
+    return task;
+  } catch (err: any) {
+    throw err;
+  }
 }

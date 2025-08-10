@@ -43,7 +43,10 @@ La aplicación está diseñada siguiendo una arquitectura modular y escalable, u
    - Esto mejora la experiencia del usuario y la escalabilidad.
 
 3. **La imagen no se guarda si se detecta que es la misma**
-   - En caso de que el md5 de la imagen coincida con una existente en la base de datos, no se guarda.
+   - En caso de que el md5 de la imagen coincida con una existente en la base de datos, no se guarda por eficiencia.
+
+4. **Las imagenes generadas son públicas**
+   - Se pueden ver desde el navegador las imagenes generadas en localhost:3000/output/${nombre}/${resolucion}/${md5}.${extension}
 
 4. **Uso de Docker**:
    - Docker garantiza que el entorno de desarrollo y producción sea consistente.
