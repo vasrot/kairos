@@ -11,7 +11,7 @@ router.post('/',
   ctrl.createTask);
 
 router.get('/:taskId',
-  param('taskId').isString().isLength({ min: 10 }),
+  param('taskId').isString(),
   validate,
   ctrl.getTask);
 

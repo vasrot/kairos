@@ -3,6 +3,7 @@ import { MongoServerError } from 'mongodb';
 import createHttpError from 'http-errors';
 import fs from 'fs/promises';
 import path from 'path';
+import mongoose from 'mongoose';
 
 const LOG_PATH = path.resolve('logs/error.log');
 
@@ -17,8 +18,14 @@ async function logError(err: any) {
   }
 }
 
-export async function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
+export async function errorHandler(err: any, req: Request, res: Response, _next: NextFunction) {
   await logError(err);
+
+  // Validación de taskId
+  const taskId = err.value;
+  if (taskId && !mongoose.Types.ObjectId.isValid(taskId)) {
+    return res.status(404).json({ message: 'Invalid taskId' });
+  }
 
   // MongoDB errors
   if (err instanceof MongoServerError) {
