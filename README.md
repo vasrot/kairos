@@ -4,7 +4,7 @@ API REST para procesar imágenes y consultar tareas.
 
 ## Arquitectura
 
-La aplicación está diseñada siguiendo una arquitectura modular y escalable, utilizando las siguientes tecnologías y patrones:
+La aplicación está diseñada siguiendo una arquitectura modular y escalable, utilizando las mejores prácticas de desarrollo (API-First, separación de conceptos, gestión de errores y pruebas):
 
 1. **Node.js y Express**:
    - Framework principal para construir la API REST.
@@ -56,9 +56,11 @@ La aplicación está diseñada siguiendo una arquitectura modular y escalable, u
 - Node.js 22+
 - Docker / Docker Compose
 
-### Arranque rápido
+### Pasos para ejecutar la aplicación
 
 1. **Crear carpetas de datos**:
+    El directorio input es para las imagenes que se quieran subir.
+    El output es para los resultados.
    ```bash
    mkdir -p data/input data/output
    ```
@@ -68,20 +70,32 @@ La aplicación está diseñada siguiendo una arquitectura modular y escalable, u
    docker compose run --rm --service-ports app npm i
    ```
 
-3. **Abrir la documentación**:
-   Accede a la documentación Swagger en:
-   ```
-   http://localhost:3000/docs
-   ```
+3. **Ejecutar Mongo**:
+    ```bash
+    docker compose -f 'docker-compose.yml' up -d --build 'mongo'
+    ```
 
 4. **Ejecutar API en DEV**:
     ```bash
     docker compose run --rm --service-ports app npm run dev
     ```
 
-### Pruebas
+4. **Abrir la documentación**:
+   Accede a la documentación Swagger en:
+   ```
+   http://localhost:3000/docs
+   ```
 
-Ejecuta las pruebas con:
+5. **Hace POST con imagen local**:
+   Al estar en un contenedor, la ruta tiene que seguir este ejemplo:
+   ```
+   /app/data/input/test-image.jpg
+   ```
+   La imagen test-image.jpg ya existe por comodidad.
+
+### Pruebas
+Comprobar primero que el contenedor de node de desarrollo esta apagado, si no, habrá problemas de puertos.
+Ejecutar las pruebas con:
 ```bash
 docker compose run --rm --service-ports app npm run test
 ```
