@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
-import { createTask as createTaskSvc, getTask as getTaskSvc } from '../services/task.service.js';
+import { createTask as createTaskSvc, getTask as getTaskSvc } from '../services/task.service';
 
 export async function createTask(req: Request, res: Response) {
   const { source } = req.body as { source: string };
@@ -12,7 +12,17 @@ export async function getTask(req: Request, res: Response) {
   const { taskId } = req.params;
   const task = await getTaskSvc(taskId);
   if (!task) throw createHttpError(404, 'Task not found');
-  const { _id, status, price, images, originalPath } = task;
-  const filteredImages = images.map(({ resolution, path }) => ({ resolution, path }));
-  return res.json({ taskId: _id, status, price, images: status === 'completed' ? filteredImages : undefined, originalPath });
+  const { _id, status, price, images } = task;
+
+  if (status === 'pending') {
+    return res.json({ status, price });
+  }
+
+  if (status === 'completed') {
+    const filteredImages = images.map(({ resolution, path }) => ({ resolution, path }));
+    return res.json({ taskId: _id, status, price, images: filteredImages });
+  }
+
+  // Error status
+  return res.json({ taskId: _id, status, price });
 }

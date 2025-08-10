@@ -11,7 +11,6 @@ export interface ITask {
     resolution: string;
     path: string;
   }[];
-  error?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +23,6 @@ const TaskSchema = new Schema<ITask>({
     resolution: { type: String, required: true },
     path: { type: String, required: true, index: true }
   }],
-  error: { type: String }
 }, { timestamps: true });
 
 TaskSchema.index({ createdAt: -1 });
