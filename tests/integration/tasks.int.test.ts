@@ -1,14 +1,16 @@
-import { createTask } from "../../src/services/task.service";
+import request from 'supertest';
+import app from '../../src/app';
 import '../setup';
 
-describe('Integration Test Example', () => {
-  it('should always pass', () => {
-    expect(true).toBe(true);
+describe('Tasks Controller Integration', () => {
+  it('POST /tasks crea una tarea y responde con taskId, status "pending" y precio asignado', async () => {
+    const res = await request(app)
+      .post('/tasks')
+      .send({ source: '/app/tests/fixtures/test.jpg' });
+    expect(res.status).toBe(201);
+    expect(res.body.taskId).toBeDefined();
+    expect(res.body.status).toBe('pending');
+    expect(typeof res.body.price).toBe('number');
   });
 
-  it('should create a task', async () => {
-    const task = await createTask('/app/tests/fixtures/test.jpg');
-    expect(task).toBeDefined();
-    expect(task.status).toBe('pending');
-  });
 });
