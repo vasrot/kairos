@@ -1,0 +1,72 @@
+openapi: 3.1.1
+info:
+  title: Image Tasks API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /tasks:
+    post:
+      summary: Creates an image processing task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source]
+              properties:
+                source:
+                  type: string
+                  description: Local (mounted) path or public URL of the image
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /tasks/{taskId}:
+    get:
+      summary: Gets status, price, and results of a task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404': { description: Task not found }
+components:
+  schemas:
+    ImageVariant:
+      type: object
+      properties:
+        resolution:
+          type: string
+          example: '1024'
+        path:
+          type: string
+          example: '/output/image1/1024/abcd1234.jpg'
+    Task:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        price:
+          type: number
+        originalPath:
+          type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageVariant'
