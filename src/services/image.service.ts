@@ -1,8 +1,8 @@
 import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
-import { md5 } from '../utils/md5.js';
-import { Image } from '../models/image.model.js';
+import { md5 } from '../utils/md5';
+import { Image } from '../models/image.model';
 import { MongoServerError } from 'mongodb';
 
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.resolve('data/output');

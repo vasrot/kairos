@@ -1,7 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
-import app from '../../src/app.js';
-import '../setup.js';
+import app from '../../src/app';
+import '../setup';
 
 let createdId: string;
 

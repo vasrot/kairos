@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
-import { createTask as createTaskSvc, getTask as getTaskSvc } from '../services/task.service.js';
+import { createTask as createTaskSvc, getTask as getTaskSvc } from '../services/task.service';
 
 export async function createTask(req: Request, res: Response) {
   const { source } = req.body as { source: string };
