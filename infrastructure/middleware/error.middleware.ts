@@ -1,28 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
 import { MongoServerError } from 'mongodb';
 import createHttpError from 'http-errors';
-import fs from 'fs/promises';
-import path from 'path';
 import mongoose from 'mongoose';
+import { LoggerService } from '../services/logger.service';
 
-const LOG_PATH = path.resolve('logs/error.log');
+const logger = new LoggerService();
 
-async function logError(err: any) {
-  const entry = `[${new Date().toISOString()}] ${err?.stack || err?.message || err}\n`;
-  try {
-    await fs.mkdir(path.dirname(LOG_PATH), { recursive: true });
-    await fs.appendFile(LOG_PATH, entry);
-  } catch (e) {
-    // Do not throw error if logging fails
-    console.error('Error writing to log:', e);
-  }
-}
+type ExtendedError = Error & Partial<MongoServerError> & Partial<createHttpError.HttpError> & { errors?: any[]; cause?: unknown };
 
-export async function errorHandler(err: any, req: Request, res: Response, _next: NextFunction) {
-  await logError(err);
+export async function errorHandler(err: ExtendedError, req: Request, res: Response, _next: NextFunction) {
+  await logger.logError(err);
 
   // Validación de taskId
-  const taskId = err.value;
+  const taskId = (err as any).value;
   if (taskId && !mongoose.Types.ObjectId.isValid(taskId)) {
     return res.status(404).json({ message: 'Invalid taskId' });
   }
@@ -35,21 +25,20 @@ export async function errorHandler(err: any, req: Request, res: Response, _next:
     return res.status(500).json({ message: 'Database error', details: err.message });
   }
 
+  // Validation errors
+  if (err.errors && Array.isArray(err.errors)) {
+    return res.status(400).json({ message: 'Validation error', errors: err.errors });
+  }
+
   // http-errors
   if (createHttpError.isHttpError?.(err)) {
     return res.status(err.statusCode || err.status || 500).json({ message: err.message });
   }
 
-  // Sharp/image processing errors
-  if (err?.name === 'Error' && /sharp|image|Could not download image/i.test(err.message)) {
+  // Image processing errors
+  if (err.name === 'Error' && /sharp|image|Could not download image/i.test(err.message)) {
     return res.status(422).json({ message: 'Image processing error', details: err.message });
   }
 
-  // Validation errors (express-validator)
-  if (err?.errors && Array.isArray(err.errors)) {
-    return res.status(400).json({ message: 'Validation error', errors: err.errors });
-  }
-
-  // Other errors
   res.status(500).json({ message: err.message || 'Internal Server Error' });
 }

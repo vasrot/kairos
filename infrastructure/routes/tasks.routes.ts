@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
-import * as ctrl from '../../application/controllers/tasks.controller';
+import * as ctrl from '../controllers/tasks.controller';
 import { validate } from '../middleware/validate.middleware';
 
 const router = Router();

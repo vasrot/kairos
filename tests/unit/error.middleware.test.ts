@@ -9,7 +9,7 @@ import createHttpError from 'http-errors';
 
 describe('errorHandler middleware', () => {
 it('returns 409 and duplicate key message for MongoServerError 11000', async () => {
-    const err = new MongoServerError({ message: 'E11000 duplicate key', code: 11000, keyValue: { foo: 'bar' } });
+    const err = new MongoServerError({ message: 'E11000 duplicate key', code: 11000, keyValue: { foo: 'bar' }, cause: undefined });
     const req = {} as any;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
     const next = jest.fn();
@@ -19,7 +19,7 @@ it('returns 409 and duplicate key message for MongoServerError 11000', async () 
 });
 
 it('returns 500 and database error message for other MongoServerError', async () => {
-    const err = new MongoServerError({ message: 'Some mongo error', code: 123 });
+    const err = new MongoServerError({ message: 'Some mongo error', code: 123, cause: undefined });
     const req = {} as any;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
     const next = jest.fn();
@@ -29,7 +29,7 @@ it('returns 500 and database error message for other MongoServerError', async ()
 });
 
 it('returns the correct status and message for http-errors', async () => {
-    const err = createHttpError(404, 'Not found');
+    const err = createHttpError(404, 'Not found', { cause: undefined });
     const req = {} as any;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
     const next = jest.fn();
@@ -39,7 +39,7 @@ it('returns the correct status and message for http-errors', async () => {
 });
 
 it('returns 422 for image processing errors', async () => {
-    const err = { name: 'Error', message: 'sharp: some error' };
+    const err = { name: 'Error', message: 'sharp: some error', cause: undefined } as Error;
     const req = {} as any;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
     const next = jest.fn();
@@ -49,7 +49,7 @@ it('returns 422 for image processing errors', async () => {
 });
 
 it('returns 400 for validation errors', async () => {
-    const err = { errors: [{ msg: 'error' }] };
+    const err = { name: 'ValidationError', message: 'Validation failed', errors: [{ msg: 'error' }], cause: undefined } as Error & { errors: any[] };
     const req = {} as any;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
     const next = jest.fn();
@@ -59,7 +59,7 @@ it('returns 400 for validation errors', async () => {
 });
 
 it('returns 500 for general errors', async () => {
-    const err = { message: 'Error' };
+    const err = { name: 'Error', message: 'Error', cause: undefined } as Error;
     const req = {} as any;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
     const next = jest.fn();

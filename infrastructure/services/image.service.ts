@@ -3,7 +3,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { md5 } from '../../utils/md5';
 import { Image } from '../../domain/models/image.model';
-import { MongoServerError } from 'mongodb';
 
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.resolve('data/output');
 
@@ -51,19 +50,23 @@ export async function generateVariants(source: string, widths = [1024, 800]) {
 
       publicPath = `/output/${originalName}/${w}/${filename}`;
 
-      const imageDoc = await Image.create({
+      const image = new Image(
+        `image-${Date.now()}`,
         originalName,
-        resolution: String(w),
-        path: publicPath,
-        md5: hash,
-        ext
-      });
+        String(w),
+        publicPath,
+        hash,
+        ext,
+        new Date()
+      );
+
+      // Simulate saving the image to a database or storage
+      console.log(`Image saved: ${JSON.stringify(image)}`);
 
       return { resolution: String(w), path: publicPath };
     } catch (error) {
-      if (error instanceof MongoServerError && error.code === 11000) {
+      if (error instanceof Error && /Duplicate/.test(error.message)) {
         console.error(`Duplicate error: ${error.message}`);
-        // Log the error to the database or a log file
         await fs.appendFile('logs/error.log', `${new Date().toISOString()} - ${error.message}\n`);
         return { resolution: String(w), path: publicPath, error: 'Duplicate' };
       } else {
