@@ -4,7 +4,7 @@ import createHttpError from 'http-errors';
 import { logger } from '../logger/logger';
 
 export async function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
-  await logger.error(err);
+  await logger.error(err.message || 'Unknown error');
 
   if (err.name === 'CastError') {
     return res.status(404).json({ message: 'Task not found' });

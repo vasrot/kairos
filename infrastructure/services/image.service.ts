@@ -70,13 +70,8 @@ export async function generateVariants(source: string, widths: number[] = [1024,
       });
 
       return { resolution: String(w), path: publicPath };
-    } catch (error: unknown) {
-      if (error instanceof MongoServerError && (error as MongoServerError).code === 11000) {
-        await logger.error(`Duplicate error: ${(error as Error).message}`);
-        return { resolution: String(w), path: publicPath, error: 'Duplicate' };
-      } else {
-        throw error;
-      }
+    } catch (error) {
+      throw error;
     }
   });
 

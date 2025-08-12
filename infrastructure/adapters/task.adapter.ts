@@ -13,7 +13,7 @@ export class TaskAdapter implements TaskPort {
       try {
         const variants = await generateVariants(source, [1024, 800]);
         await this.repository.markCompleted(id, variants);
-      } catch (err: unknown) {
+      } catch (err) {
         await this.repository.markFailed(id);
       }
     })();
