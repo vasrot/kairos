@@ -3,6 +3,11 @@ import path from 'path';
 
 const LOG_PATH = path.resolve('logs/error.log');
 
+/**
+ * Appends a line to the error log file.
+ * If the directory does not exist, it will be created.
+ * @param line The line to append to the log file
+ */
 async function append(line: string) {
   try {
     await fs.mkdir(path.dirname(LOG_PATH), { recursive: true });

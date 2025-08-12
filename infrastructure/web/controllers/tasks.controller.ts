@@ -5,12 +5,24 @@ import { TaskUseCase } from '../../../application/usecases/task.usecase';
 export class TasksController {
   constructor(private readonly taskUseCase: TaskUseCase) {}
 
+  /**
+   * Create a new task.
+   * @param req Express request object
+   * @param res Express response object
+   * @returns Created task information
+   */
   createTask = async (req: Request, res: Response) => {
     const { source } = req.body as { source: string };
     const task = await this.taskUseCase.createTask(source);
     return res.status(201).json(task);
   };
 
+  /**
+   * Get task information.
+   * @param req Express request object
+   * @param res Express response object
+   * @returns Task information
+   */
   getTask = async (req: Request, res: Response) => {
     const { taskId } = req.params as { taskId: string };
     const task = await this.taskUseCase.getTask(taskId);
