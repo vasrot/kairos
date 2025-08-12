@@ -26,14 +26,23 @@ The application is designed following a hexagonal architecture (infrastructure, 
 
 ### Main Components
 
-- **`application/controllers`**: Controllers that handle HTTP requests and delegate business logic to use cases.
-- **`application/usecases`**: Use cases that encapsulate business logic and act as intermediaries between controllers and ports.
-- **`domain/models`**: MongoDB schema definitions using Mongoose to structure task and image data.
-- **`domain/ports`**: Interfaces that define available operations to interact with business logic, decoupling technical details.
-- **`infrastructure/adapters`**: Implementations of ports that handle technical details, such as database interaction and image processing.
-- **`infrastructure/app.ts`**: Main application configuration, including middlewares, routes, and use case initialization.
-- **`infrastructure/middleware`**: Middlewares that check request validity and handle global errors.
-- **`infrastructure/services`**: Auxiliary services that perform specific tasks, such as image processing or variant generation.
+- `application/usecases`: Application layer use cases. Example: `TaskUseCase` orchestrates the ports to create tasks and map results.
+- `domain/models`: Pure domain models (TypeScript types/interfaces), e.g. `TaskEntity`, `TaskImage`, `TaskStatus`.
+- `domain/ports`: Ports that define domain contracts: `TaskPort`, `TaskRepositoryPort`.
+- `infrastructure/adapters`: Adapters that implement ports:
+   - `TaskAdapter` implements `TaskPort` and triggers background image processing.
+   - `TaskRepositoryAdapter` implements `TaskRepositoryPort` on top of Mongo/Mongoose.
+- `infrastructure/web/controllers`: HTTP controllers (e.g. `TasksController`).
+- `infrastructure/routes`: Express route definitions (e.g. `tasks.routes.ts`).
+- `infrastructure/persistence/mongoose`: Mongoose models/schemas for MongoDB (`task.model.ts`, `image.model.ts`).
+- `infrastructure/services`: Technical services such as `image.service.ts` (Sharp, I/O, variants).
+- `infrastructure/middleware`: Validation and error handling middlewares.
+- `infrastructure/logger`: Simple reusable logger (`logger.ts`).
+- `infrastructure/app.ts`: Express app assembly (middlewares, routes, static files).
+- `infrastructure/index.ts`: Server entry point and dependency injection.
+- `infrastructure/db.ts`: Mongo connection with Mongoose.
+- `utils/md5.ts`: Shared utilities.
+- `tests/`: Unit and integration tests (unit: focused on use cases mocking only the DB; integration: full HTTP flow).
 
 ## Decisions Made
 
