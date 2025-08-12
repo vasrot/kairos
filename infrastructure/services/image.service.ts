@@ -3,8 +3,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { md5 } from '../../utils/md5';
 import { ImageModel } from '../persistence/mongoose/image.model';
-import { MongoServerError } from 'mongodb';
-import { logger } from '../logger/logger';
 
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.resolve('data/output');
 
