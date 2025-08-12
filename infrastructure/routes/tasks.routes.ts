@@ -1,18 +1,20 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
-import * as ctrl from '../../application/controllers/tasks.controller';
 import { validate } from '../middleware/validate.middleware';
+import { TasksController } from '../web/controllers/tasks.controller';
 
-const router = Router();
+export default function createTasksRouter(controller: TasksController): Router {
+  const router = Router();
 
-router.post('/',
-  body('source').isString().notEmpty().withMessage('source is required'),
-  validate,
-  ctrl.createTask);
+  router.post('/',
+    body('source').isString().notEmpty().withMessage('source is required'),
+    validate,
+    controller.createTask);
 
-router.get('/:taskId',
-  param('taskId').isString(),
-  validate,
-  ctrl.getTask);
+  router.get('/:taskId',
+    param('taskId').isString(),
+    validate,
+    controller.getTask);
 
-export default router;
+  return router;
+}

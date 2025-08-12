@@ -2,8 +2,9 @@ import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
 import { md5 } from '../../utils/md5';
-import { Image } from '../../domain/models/image.model';
+import { ImageModel } from '../persistence/mongoose/image.model';
 import { MongoServerError } from 'mongodb';
+import { logger } from '../logger/logger';
 
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.resolve('data/output');
 
@@ -35,15 +36,24 @@ export async function loadInput(source: string): Promise<{ buf: Buffer; original
   }
 }
 
-export async function generateVariants(source: string, widths = [1024, 800]) {
+function toSharpFormat(ext: string): keyof sharp.FormatEnum {
+  const lower = ext.toLowerCase();
+  if (lower === 'jpg' || lower === 'jpeg') return 'jpeg';
+  if (lower === 'png') return 'png';
+  if (lower === 'webp') return 'webp';
+  if (lower === 'avif') return 'avif';
+  return 'jpeg';
+}
+
+export async function generateVariants(source: string, widths: number[] = [1024, 800]) {
   const { buf, originalName, ext } = await loadInput(source);
 
-  const tasks = widths.map(async (w) => {
-    let publicPath: string = '';
+  const tasks = widths.map(async (w: number) => {
+    let publicPath = '' as string;
     try {
       const outDir = path.join(OUTPUT_DIR, originalName, String(w));
       await ensureDir(outDir);
-      const resized = await sharp(buf).resize({ width: w }).toFormat(ext as any, { quality: 85 }).toBuffer();
+  const resized = await sharp(buf).resize({ width: w }).toFormat(toSharpFormat(ext), { quality: 85 }).toBuffer();
       const hash = md5(resized);
       const filename = `${hash}.${ext}`;
       const filePath = path.join(outDir, filename);
@@ -51,7 +61,7 @@ export async function generateVariants(source: string, widths = [1024, 800]) {
 
       publicPath = `/output/${originalName}/${w}/${filename}`;
 
-      const imageDoc = await Image.create({
+  const imageDoc = await ImageModel.create({
         originalName,
         resolution: String(w),
         path: publicPath,
@@ -60,11 +70,9 @@ export async function generateVariants(source: string, widths = [1024, 800]) {
       });
 
       return { resolution: String(w), path: publicPath };
-    } catch (error) {
-      if (error instanceof MongoServerError && error.code === 11000) {
-        console.error(`Duplicate error: ${error.message}`);
-        // Log the error to the database or a log file
-        await fs.appendFile('logs/error.log', `${new Date().toISOString()} - ${error.message}\n`);
+    } catch (error: unknown) {
+      if (error instanceof MongoServerError && (error as MongoServerError).code === 11000) {
+        await logger.error(`Duplicate error: ${(error as Error).message}`);
         return { resolution: String(w), path: publicPath, error: 'Duplicate' };
       } else {
         throw error;
