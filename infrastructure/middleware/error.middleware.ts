@@ -3,8 +3,12 @@ import { MongoServerError } from 'mongodb';
 import createHttpError from 'http-errors';
 import { logger } from '../logger/logger';
 
-export async function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
+export async function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
   await logger.error(err);
+
+  if (err.name === 'CastError') {
+    return res.status(404).json({ message: 'Resource not found' });
+  }
 
   // MongoDB errors
   if (err instanceof MongoServerError) {
