@@ -4,8 +4,10 @@
     "module": "CommonJS",
     "esModuleInterop": true,
     "strict": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
-  "include": ["infrastructure/**/*", "utils"],
+  "include": ["domain/**/*", "application/**/*", "infrastructure/**/*", "utils/**/*"],
   "exclude": ["node_modules"]
 }

@@ -1,6 +1,18 @@
 import request from 'supertest';
-import app from '../../infrastructure/app';
+import { createApp } from '../../infrastructure/app';
+import { TaskRepositoryAdapter } from '../../infrastructure/adapters/task.repository.adapter';
+import { TaskAdapter } from '../../infrastructure/adapters/task.adapter';
+import { TaskUseCase } from '../../application/usecases/task.usecase';
+import { TasksController } from '../../infrastructure/web/controllers/tasks.controller';
 import '../setup';
+
+const app = (() => {
+  const repository = new TaskRepositoryAdapter();
+  const adapter = new TaskAdapter(repository);
+  const useCase = new TaskUseCase(adapter, repository);
+  const controller = new TasksController(useCase);
+  return createApp(controller);
+})();
 
 describe('Tasks Controller Integration', () => {
   it('POST /tasks creates a task and responds with taskId, status "pending" and assigned price', async () => {
