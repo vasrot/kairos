@@ -1,37 +1,29 @@
 import { TaskPort } from '../../domain/ports/task.port';
-import { TaskModel } from '../persistence/mongoose/task.model';
 import { generateVariants } from '../services/image.service';
+import { TaskRepositoryPort } from '../../domain/ports/task-repository.port';
 
 export class TaskAdapter implements TaskPort {
+  constructor(private readonly repository: TaskRepositoryPort) {}
+
   async createTask(source: string) {
     const price = Number((Math.random() * (50 - 5) + 5).toFixed(2));
-  const task = await TaskModel.create({ status: 'pending', price, originalPath: source, images: [] });
+    const { id, status, price: createdPrice } = await this.repository.create(source, price);
 
     void (async () => {
       try {
         const variants = await generateVariants(source, [1024, 800]);
-        task.images = variants;
-        task.status = 'completed';
-  await task.save();
+        await this.repository.markCompleted(id, variants);
       } catch (err: unknown) {
-        task.status = 'failed';
-        await task.save();
+        await this.repository.markFailed(id);
       }
     })();
 
-    return { taskId: task._id.toString(), status: task.status, price: task.price };
+    return { taskId: id, status, price: createdPrice };
   }
 
   async getTask(taskId: string) {
-  const task = await TaskModel.findById(taskId).lean();
+    const task = await this.repository.findById(taskId);
     if (!task) return null;
-
-    const { _id, status, price, images } = task;
-    return {
-      taskId: _id.toString(),
-      status,
-      price,
-      images: images?.map(({ resolution, path }: { resolution: string; path: string }) => ({ resolution, path }))
-    };
+    return { taskId: task.id, status: task.status, price: task.price, images: task.images };
   }
 }
