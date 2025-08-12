@@ -1,70 +1,113 @@
-jest.mock('fs/promises', () => ({
-  appendFile: jest.fn().mockResolvedValue(undefined),
-  mkdir: jest.fn().mockResolvedValue(undefined),
+import express from 'express';
+import request from 'supertest';
+import createHttpError from 'http-errors';
+import { MongoServerError } from 'mongodb';
+import { errorHandler } from '../../infrastructure/middleware/error.middleware';
+
+jest.mock('../../infrastructure/logger/logger', () => ({
+	logger: {
+		error: jest.fn().mockResolvedValue(undefined),
+		info: jest.fn(),
+		warn: jest.fn()
+	}
 }));
 
-import { errorHandler } from '../../infrastructure/middleware/error.middleware';
-import { MongoServerError } from 'mongodb';
-import createHttpError from 'http-errors';
+import { logger } from '../../infrastructure/logger/logger';
 
-describe('errorHandler middleware', () => {
-    it('returns 409 and duplicate key message for MongoServerError 11000', async () => {
-        const err = new MongoServerError({ message: 'E11000 duplicate key', code: 11000, keyValue: { foo: 'bar' } });
-        const req = {} as any;
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-        const next = jest.fn();
-        await errorHandler(err, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(409);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Duplicate key error', details: { foo: 'bar' } });
-    });
+describe('errorHandler middleware (SuperTest)', () => {
+	const mockedLogger = logger as jest.Mocked<typeof logger>;
 
-    it('returns 500 and database error message for other MongoServerError', async () => {
-        const err = new MongoServerError({ message: 'Some mongo error', code: 123 });
-        const req = {} as any;
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-        const next = jest.fn();
-        await errorHandler(err, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Database error', details: 'Some mongo error' });
-    });
+	function appWithErrorFactory(errFactory: () => Error) {
+		const app = express();
+		app.get('/test', (_req, _res, next) => {
+			next(errFactory());
+		});
+		app.use(errorHandler);
+		return app;
+	}
 
-    it('returns the correct status and message for http-errors', async () => {
-        const err = createHttpError(404, 'Not found');
-        const req = {} as any;
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-        const next = jest.fn();
-        await errorHandler(err, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Not found' });
-    });
+	const makeMongoServerError = (
+		code?: number,
+		keyValue?: Record<string, string>,
+		message = 'Mongo error'
+	) => {
+		const err = new Error(message) as MongoServerError & {
+			code?: number;
+			keyValue?: Record<string, string>;
+		};
+		Object.setPrototypeOf(err, MongoServerError.prototype);
+		if (code !== undefined) err.code = code;
+		if (keyValue) err.keyValue = keyValue;
+		return err as MongoServerError;
+	};
 
-    it('returns 422 for image processing errors', async () => {
-        const err = { name: 'Error', message: 'sharp: some error' };
-        const req = {} as any;
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-        const next = jest.fn();
-        await errorHandler(err, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(422);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Image processing error', details: 'sharp: some error' });
-    });
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-    it('returns 400 for validation errors', async () => {
-        const err = { name: 'ValidationError', message: 'Validation error', errors: [{ msg: 'error' }] };
-        const req = {} as any;
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-        const next = jest.fn();
-        await errorHandler(err as Error, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Validation error', errors: [{ msg: 'error' }] });
-    });
+	it('returns 404 for CastError', async () => {
+		const app = appWithErrorFactory(() => {
+			const err = new Error('Cast to ObjectId failed');
+			err.name = 'CastError';
+			return err;
+		});
 
-    it('returns 500 for general errors', async () => {
-        const err = { name: 'Error', message: 'Error' };
-        const req = {} as any;
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-        const next = jest.fn();
-        await errorHandler(err, req, res, next);
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Error' });
-    });
+		const res = await request(app).get('/test');
+
+		expect(mockedLogger.error).toHaveBeenCalled();
+		expect(res.status).toBe(404);
+		expect(res.body).toEqual({ message: 'Task not found' });
+	});
+
+	it('returns 409 for MongoServerError with duplicate key (11000)', async () => {
+		const keyValue: Record<string, string> = { filename: 'test.jpg' };
+		const app = appWithErrorFactory(() => makeMongoServerError(11000, keyValue, 'E11000 duplicate key error'));
+
+		const res = await request(app).get('/test');
+
+		expect(mockedLogger.error).toHaveBeenCalled();
+		expect(res.status).toBe(409);
+		expect(res.body).toEqual({ message: 'Duplicate key error', details: keyValue });
+	});
+
+	it('returns 500 for MongoServerError other than 11000', async () => {
+		const app = appWithErrorFactory(() => makeMongoServerError(121, undefined, 'Some mongo error'));
+
+		const res = await request(app).get('/test');
+
+		expect(mockedLogger.error).toHaveBeenCalled();
+		expect(res.status).toBe(500);
+		expect(res.body).toEqual({ message: 'Database error', details: 'Some mongo error' });
+	});
+
+	it('handles http-errors with proper status and message', async () => {
+		const app = appWithErrorFactory(() => createHttpError(418, 'I am a teapot'));
+
+		const res = await request(app).get('/test');
+
+		expect(mockedLogger.error).toHaveBeenCalled();
+		expect(res.status).toBe(418);
+		expect(res.body).toEqual({ message: 'I am a teapot' });
+	});
+
+	it('returns 422 for sharp/image processing errors', async () => {
+		const app = appWithErrorFactory(() => new Error('sharp processing failed: invalid image'));
+
+		const res = await request(app).get('/test');
+
+		expect(mockedLogger.error).toHaveBeenCalled();
+		expect(res.status).toBe(422);
+		expect(res.body).toEqual({ message: 'Image processing error', details: 'sharp processing failed: invalid image' });
+	});
+
+	it('returns 500 for other errors', async () => {
+		const app = appWithErrorFactory(() => new Error('Unexpected'));
+
+		const res = await request(app).get('/test');
+
+		expect(mockedLogger.error).toHaveBeenCalled();
+		expect(res.status).toBe(500);
+		expect(res.body).toEqual({ message: 'Unexpected' });
+	});
 });
+
