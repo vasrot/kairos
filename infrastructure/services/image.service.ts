@@ -2,17 +2,25 @@ import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
 import { md5 } from '../../utils/md5';
-import { Image } from '../../domain/models/image.model';
-import { MongoServerError } from 'mongodb';
+import { ImageModel } from '../persistence/mongoose/image.model';
 
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.resolve('data/output');
 
 export type VariantSpec = { width: number };
 
+/**
+ * Ensures that a directory exists.
+ * @param dir Absolute path of the directory to ensure
+ */
 export async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
 }
 
+/**
+ * Loads the input image from a URL or local path.
+ * @param source Absolute path or URL of the input image
+ * @returns Buffer, original name, and extension of the image
+ */
 export async function loadInput(source: string): Promise<{ buf: Buffer; originalName: string; ext: string; }>{
   // If it's a public URL (http/https), download; if it's a local path, read
   if (/^https?:\/\//i.test(source)) {
@@ -35,15 +43,35 @@ export async function loadInput(source: string): Promise<{ buf: Buffer; original
   }
 }
 
-export async function generateVariants(source: string, widths = [1024, 800]) {
+/**
+ * Maps file extensions to Sharp format enums.
+ * @param ext File extension
+ * @returns Sharp format enum key
+ */
+function toSharpFormat(ext: string): keyof sharp.FormatEnum {
+  const lower = ext.toLowerCase();
+  if (lower === 'jpg' || lower === 'jpeg') return 'jpeg';
+  if (lower === 'png') return 'png';
+  if (lower === 'webp') return 'webp';
+  if (lower === 'avif') return 'avif';
+  return 'jpeg';
+}
+
+/**
+ * Generate image variants with specified widths.
+ * @param source Absolute path or URL of the input image
+ * @param widths Array of target widths for the variants
+ * @returns Array of generated image variant metadata
+ */
+export async function generateVariants(source: string, widths: number[] = [1024, 800]) {
   const { buf, originalName, ext } = await loadInput(source);
 
-  const tasks = widths.map(async (w) => {
-    let publicPath: string = '';
+  const tasks = widths.map(async (w: number) => {
+    let publicPath = '' as string;
     try {
       const outDir = path.join(OUTPUT_DIR, originalName, String(w));
       await ensureDir(outDir);
-      const resized = await sharp(buf).resize({ width: w }).toFormat(ext as any, { quality: 85 }).toBuffer();
+  const resized = await sharp(buf).resize({ width: w }).toFormat(toSharpFormat(ext), { quality: 85 }).toBuffer();
       const hash = md5(resized);
       const filename = `${hash}.${ext}`;
       const filePath = path.join(outDir, filename);
@@ -51,7 +79,7 @@ export async function generateVariants(source: string, widths = [1024, 800]) {
 
       publicPath = `/output/${originalName}/${w}/${filename}`;
 
-      const imageDoc = await Image.create({
+  const imageDoc = await ImageModel.create({
         originalName,
         resolution: String(w),
         path: publicPath,
@@ -61,14 +89,7 @@ export async function generateVariants(source: string, widths = [1024, 800]) {
 
       return { resolution: String(w), path: publicPath };
     } catch (error) {
-      if (error instanceof MongoServerError && error.code === 11000) {
-        console.error(`Duplicate error: ${error.message}`);
-        // Log the error to the database or a log file
-        await fs.appendFile('logs/error.log', `${new Date().toISOString()} - ${error.message}\n`);
-        return { resolution: String(w), path: publicPath, error: 'Duplicate' };
-      } else {
-        throw error;
-      }
+      throw error;
     }
   });
 
