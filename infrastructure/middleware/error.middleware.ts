@@ -20,20 +20,15 @@ export async function errorHandler(err: Error, req: Request, res: Response, _nex
 
   // http-errors
   if (createHttpError.isHttpError?.(err)) {
-    const httpErr = err as any;
+    const httpErr = err;
     return res.status(httpErr.statusCode || httpErr.status || 500).json({ message: httpErr.message });
   }
 
   // Sharp/image processing errors
-  if ((err as any)?.name === 'Error' && /sharp|image|Could not download image/i.test((err as any).message)) {
-    return res.status(422).json({ message: 'Image processing error', details: (err as any).message });
-  }
-
-  // Validation errors (express-validator)
-  if ((err as any)?.errors && Array.isArray((err as any).errors)) {
-    return res.status(400).json({ message: 'Validation error', errors: (err as any).errors });
+  if (err?.name === 'Error' && /sharp|image|Could not download image/i.test(err.message)) {
+    return res.status(422).json({ message: 'Image processing error', details: err.message });
   }
 
   // Other errors
-  res.status(500).json({ message: (err as any)?.message || 'Internal Server Error' });
+  res.status(500).json({ message: err.message || 'Internal Server Error' });
 }

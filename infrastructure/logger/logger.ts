@@ -16,7 +16,7 @@ export const logger = {
   info: (msg: string) => console.log(msg),
   warn: (msg: string) => console.warn(msg),
   error: async (err: unknown) => {
-    const text = typeof err === 'string' ? err : (err as any)?.stack || (err as any)?.message || String(err);
+    const text = typeof err === 'string' ? err : String(err);
     await append(`[${new Date().toISOString()}] ${text}\n`);
     console.error(text);
   }
