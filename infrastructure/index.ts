@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import app, { createApp } from './app';
+import { createApp } from './app';
 import { TaskAdapter } from './adapters/task.adapter';
 import { TaskUseCase } from '../application/usecases/task.usecase';
 import { TasksController } from './web/controllers/tasks.controller';

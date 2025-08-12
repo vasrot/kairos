@@ -29,17 +29,3 @@ export function createApp(controller: TasksController): Express {
 
 	return app;
 }
-
-// Default app instance (useful for tests). For production, index.ts wires dependencies explicitly.
-import { TaskAdapter } from './adapters/task.adapter';
-import { TaskUseCase } from '../application/usecases/task.usecase';
-import { TaskRepositoryAdapter } from './adapters/task.repository.adapter';
-const defaultApp = (() => {
-		const repository = new TaskRepositoryAdapter();
-		const taskAdapter = new TaskAdapter(repository);
-		const taskUseCase = new TaskUseCase(taskAdapter, repository);
-	const tasksController = new TasksController(taskUseCase);
-	return createApp(tasksController);
-})();
-
-export default defaultApp;
