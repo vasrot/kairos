@@ -8,63 +8,63 @@ import { MongoServerError } from 'mongodb';
 import createHttpError from 'http-errors';
 
 describe('errorHandler middleware', () => {
-it('returns 409 and duplicate key message for MongoServerError 11000', async () => {
-    const err = new MongoServerError({ message: 'E11000 duplicate key', code: 11000, keyValue: { foo: 'bar' } });
-    const req = {} as any;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-    const next = jest.fn();
-    await errorHandler(err, req, res, next);
-    expect(res.status).toHaveBeenCalledWith(409);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Duplicate key error', details: { foo: 'bar' } });
-});
+    it('returns 409 and duplicate key message for MongoServerError 11000', async () => {
+        const err = new MongoServerError({ message: 'E11000 duplicate key', code: 11000, keyValue: { foo: 'bar' } });
+        const req = {} as any;
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+        const next = jest.fn();
+        await errorHandler(err, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(409);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Duplicate key error', details: { foo: 'bar' } });
+    });
 
-it('returns 500 and database error message for other MongoServerError', async () => {
-    const err = new MongoServerError({ message: 'Some mongo error', code: 123 });
-    const req = {} as any;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-    const next = jest.fn();
-    await errorHandler(err, req, res, next);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Database error', details: 'Some mongo error' });
-});
+    it('returns 500 and database error message for other MongoServerError', async () => {
+        const err = new MongoServerError({ message: 'Some mongo error', code: 123 });
+        const req = {} as any;
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+        const next = jest.fn();
+        await errorHandler(err, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Database error', details: 'Some mongo error' });
+    });
 
-it('returns the correct status and message for http-errors', async () => {
-    const err = createHttpError(404, 'Not found');
-    const req = {} as any;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-    const next = jest.fn();
-    await errorHandler(err, req, res, next);
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Not found' });
-});
+    it('returns the correct status and message for http-errors', async () => {
+        const err = createHttpError(404, 'Not found');
+        const req = {} as any;
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+        const next = jest.fn();
+        await errorHandler(err, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Not found' });
+    });
 
-it('returns 422 for image processing errors', async () => {
-    const err = { name: 'Error', message: 'sharp: some error' };
-    const req = {} as any;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-    const next = jest.fn();
-    await errorHandler(err, req, res, next);
-    expect(res.status).toHaveBeenCalledWith(422);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Image processing error', details: 'sharp: some error' });
-});
+    it('returns 422 for image processing errors', async () => {
+        const err = { name: 'Error', message: 'sharp: some error' };
+        const req = {} as any;
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+        const next = jest.fn();
+        await errorHandler(err, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(422);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Image processing error', details: 'sharp: some error' });
+    });
 
-it('returns 400 for validation errors', async () => {
-    const err = { errors: [{ msg: 'error' }] };
-    const req = {} as any;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-    const next = jest.fn();
-    await errorHandler(err, req, res, next);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Validation error', errors: [{ msg: 'error' }] });
-});
+    it('returns 400 for validation errors', async () => {
+        const err = { name: 'ValidationError', message: 'Validation error', errors: [{ msg: 'error' }] };
+        const req = {} as any;
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+        const next = jest.fn();
+        await errorHandler(err as Error, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Validation error', errors: [{ msg: 'error' }] });
+    });
 
-it('returns 500 for general errors', async () => {
-    const err = { message: 'Error' };
-    const req = {} as any;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
-    const next = jest.fn();
-    await errorHandler(err, req, res, next);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Error' });
-});
+    it('returns 500 for general errors', async () => {
+        const err = { name: 'Error', message: 'Error' };
+        const req = {} as any;
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+        const next = jest.fn();
+        await errorHandler(err, req, res, next);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Error' });
+    });
 });

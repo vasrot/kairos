@@ -5,7 +5,6 @@ export interface TaskImage {
   path: string;
 }
 
-// Pure domain entity (no persistence concerns)
 export interface TaskEntity {
   id: string;
   status: TaskStatus;

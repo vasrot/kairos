@@ -7,7 +7,7 @@ export async function errorHandler(err: Error, req: Request, res: Response, _nex
   await logger.error(err);
 
   if (err.name === 'CastError') {
-    return res.status(404).json({ message: 'Resource not found' });
+    return res.status(404).json({ message: 'Task not found' });
   }
 
   // MongoDB errors
